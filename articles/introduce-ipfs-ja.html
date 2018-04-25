@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Introduce IPFS (Japanese)</title>
+  </head>
+  <body>
+
+<h1 data-line="0" id="IPFS-%E3%81%AE%E7%B4%B9%E4%BB%8B">IPFS の紹介</h1>
+<h2 data-line="2" id="IPFS-%E3%81%A8%E3%81%AF">IPFS とは</h2>
+<p data-line="4">IPFS とは P2P 技術を用いた分散ファイルシステムです。最近話題の &quot;Dapps&quot; で利用される事例が増えています。<br />
+IPFS は HTTP で提供されている Web の世界をより良いものとする事を目的としています。</p>
+<p data-line="7"><a href="https://ipfs.io/">IPFS is the Distributed Web</a></p>
+<p data-line="9">詳細はホワイトペーパーに記述されているので、そちらを参照してください。</p>
+<p data-line="11"><a href="https://ipfs.io/ipfs/QmR7GSQM93Cx5eAg6a6yRzNde1FQv7uL6X1o4k7zrJa3LX/ipfs.draft3.pdf">IPFS - Content Addressed, Versioned, P2P File System (DRAFT 3)</a></p>
+<p data-line="13">非公式ですが、日本語で且つ非常に詳しく説明しているスライドもあります。</p>
+<script async class="speakerdeck-embed" data-id="0084f090a5084f32b2720aadc24cf035" data-ratio="1.77777777777778" src="https://speakerdeck.com/assets/embed.js"></script>
+<p data-line="15"><a href="https://speakerdeck.com/gentam/introduction-to-the-ipfs">Introduction to the IPFS // Speaker Deck</a></p>
+<p data-line="17">この記事は主に IPFS の技術に関する内容をまとめたものです。<br />
+以下の構成になります。</p>
+<ul>
+<li>IPFS のスタックと簡単な説明</li>
+<li>実装状況</li>
+<li>IPFS を用いたアプリケーション</li>
+<li>リファレンス</li>
+</ul>
+<h2 data-line="25" id="IPFS-%E3%81%AE%E3%82%B9%E3%82%BF%E3%83%83%E3%82%AF%E3%81%A8%E7%B0%A1%E5%8D%98%E3%81%AA%E8%AA%AC%E6%98%8E">IPFS のスタックと簡単な説明</h2>
+<p data-line="27">IPFS は以下のスタックで構成されています。</p>
+<p data-line="29"><img src="https://user-images.githubusercontent.com/189824/39252982-cbac33ae-48e1-11e8-81ca-6ecdb1e325d8.png" style="width: 800px" /></p>
+<p data-line="31">(merkledag 部分は現在<a href="https://github.com/ipfs/specs/tree/master/merkledag">IPLD として定義されている</a>ため、Data Format と変更しています。)</p>
+<ul>
+<li>Naming</li>
+<li>Data Format</li>
+<li>Exchange</li>
+<li>Routing</li>
+<li>Network</li>
+</ul>
+<p data-line="39"><a href="https://github.com/ipfs/specs/tree/master/architecture">specs/architecture at master · ipfs/specs · GitHub</a></p>
+<h3 data-line="42" id="Naming">Naming</h3>
+<p data-line="44">IPFS はルーティングシステムを利用してノード ID とオブジェクトのハッシュを紐づける機能 IPNS を提供しています。<br />
+(DNS の様な機能)</p>
+<p data-line="47">Publisher の実装は以下の2つ</p>
+<ul>
+<li>DHT</li>
+<li>pubsub (experimental)</li>
+</ul>
+<p data-line="52">また Resolver の実装は以下の4つの方法があります。</p>
+<ul>
+<li>DHT</li>
+<li>DNS</li>
+<li>proquint</li>
+<li>pubsub (experimental)</li>
+</ul>
+<p data-line="59"><a href="https://github.com/ipfs/go-ipfs/blob/master/namesys/namesys.go">go-ipfs/namesys.go at master · ipfs/go-ipfs · GitHub</a></p>
+<p data-line="61">最新版の IPFS 0.4.14 では pubsub での Publisher と Resolver が追加されました。<br />
+この機能を有効にするとリアルタイムで公開・解決が可能となります。<br />
+<a href="https://ipfs.io/blog/34-go-ipfs-0.4.14#ipns-improvements">go-ipfs 0.4.14 released</a></p>
+<h3 data-line="66" id="Data-Format">Data Format</h3>
+<p data-line="68">IPFS では各ノード間で通信が行われるデータフォーマット <a href="https://ipld.io/">IPLD</a> を利用しています。<br />
+簡単に説明すると横断可能な merkle-links を保持した json フォーマットです。</p>
+<p data-line="71">IPLD では以下を定義します。</p>
+<ul>
+<li>merkle-links</li>
+<li>merkle-dag</li>
+<li>merkle-paths</li>
+<li>IPLD Data Model</li>
+<li>IPLD Serialized Formats</li>
+</ul>
+<p data-line="79"><a href="https://www.youtube.com/watch?v=Bqs_LzBjQyk">Juan Benet: Enter the Merkle Forest</a><br />
+<a href="https://github.com/ipld/specs/tree/master/ipld">specs/ipld at master · ipld/specs · GitHub</a></p>
+<h4 data-line="83" id="merkle-links">merkle-links</h4>
+<p data-line="85">merkle-links は、コンテンツアドレスを持ち暗号化された2つのオブジェクト間のリンクです。<br />
+リンクされたオブジェクトを、ハッシュを用いて整合性を確認することができるため、変更不可能なデータ構造となります。</p>
+<p data-line="88">以下が link オブジェクトの例です。</p>
+<pre class="code CodeMirror"><span class="filename"><code class="json">{ &quot;/&quot; : &quot;/ipfs/QmUmg7BZC1YP1ca66rRtWKxpXp77WgVHrnv263JtDuvs2k&quot; }
+// &quot;/&quot; link key
+// &quot;/ipfs/QmUmg7BZC1YP1ca66rRtWKxpXp77WgVHrnv263JtDuvs2k&quot; link
+</code></pre>
+<h4 data-line="97" id="merkle-dag">merkle-dag</h4>
+<p data-line="99">merkle-links を持つオブジェクトはグラフ (merkle-graph) を形成します。<br />
+リンクの参照は必ず有向 (Directed) なので、 非巡回 (Acyclic) となります。<br />
+したがって、merkle-links を使用するグラフは DAG (merkle-dag) となります。</p>
+<h4 data-line="104" id="merkle-path">merkle-path</h4>
+<p data-line="106">merkle-path は Unix スタイルのパス (/a/b/c/d) と同じですが、参照されたノードからまた別のノードへのアクセスを可能とします。</p>
+<h4 data-line="109" id="IPLD-Data-Model">IPLD Data Model</h4>
+<p data-line="111">IPLD Data Model は複数の制約をもった json ベースの構造をしたオブジェクトです。</p>
+<p data-line="113"><a href="https://github.com/ipld/specs/tree/master/ipld#constraints-and-desires">specs/ipld at master · ipld/specs · GitHub</a></p>
+<h4 data-line="116" id="IPLD-Serialized-Formats">IPLD Serialized Formats</h4>
+<p data-line="118">IPLD は シリアライズされたデータを任意のデータ形式にコーデックすることができます。<br />
+言語によってサポートされているフォーマットは異なりますが、Golang 実装は JSON, CBOR, Protocol Buffers, Message Pack などがサポートされています。</p>
+<h3 data-line="122" id="Exchange">Exchange</h3>
+<p data-line="124">IPFS ではデータブロック交換のためのプロトコル BitSwap を利用しています。<br />
+IPFS ノードがネットワークからデータブロックをフェッチする要求を処理します。 他の IPFS ノードの BitSwap エージェントと相互作用し、必要に応じてデータブロックをフェッチします。</p>
+<p data-line="127"><a href="https://github.com/ipfs/specs/tree/master/bitswap">specs/bitswap at master · ipfs/specs · GitHub</a></p>
+<h3 data-line="130" id="Routing">Routing</h3>
+<p data-line="132">IPFS では以下 2つの Routing インターフェースが定義されています。</p>
+<ul>
+<li>Peer Routing</li>
+<li>Content Routing</li>
+</ul>
+<p data-line="137">S/Kademlia DHT は Peer Routing であり、Content Routing でもあります。<br />
+Kademlia は木構造型の DHT を持つ P2P システムで、S/Kademlia は Kademlia をよりセキュアにした実装になります。</p>
+<p data-line="140">ホワイトペーパー内では Coral DSHT の実装について言及していますが、<a href="https://github.com/libp2p/go-libp2p-kad-dht/commit/db3b915a171c67c32d2136ec155877e5b63e9035">現在はまだ未実装</a>です。</p>
+<p data-line="142"><a href="https://github.com/libp2p/go-libp2p/issues/222">Implement peer-discovery interface · Issue #222 · libp2p/go-libp2p · GitHub</a></p>
+<h4 data-line="145" id="Peer-Routing">Peer Routing</h4>
+<p data-line="147">Peer Routing はネットワーク内の他のピアが見つかるまで意図的にクエリを発行します。<br />
+DHT の他に、新しく <a href="https://github.com/libp2p/js-libp2p-delegated-peer-routing">Delegated Peer Routing</a> を開発中です。</p>
+<h4 data-line="151" id="Content-Routing">Content Routing</h4>
+<p data-line="153">Content Routing はコンテンツがネットワーク内のどこにあるかを見つける方法を提供します。<br />
+こちらも <a href="https://github.com/libp2p/js-libp2p-delegated-content-routing">Delegated Content Routing</a> を開発中です。</p>
+<h3 data-line="157" id="Network">Network</h3>
+<p data-line="159">Network は以下のスタックに分かれます。</p>
+<ul>
+<li>Swarm</li>
+<li>Discovery</li>
+<li>Distributed Record Store</li>
+</ul>
+<h4 data-line="166" id="Swarm">Swarm</h4>
+<p data-line="168">ストリームマルチプレクサ、NAT トラバーサル、接続の中継、マルチトランスポート(TCP, UDP, UTP, SPDY, TLSなど) に関わる全てを処理します。</p>
+<h4 data-line="171" id="Discovery">Discovery</h4>
+<p data-line="173">接続可能なピアを検索します。<br />
+以下の実装があります。</p>
+<ul>
+<li>Multicast DNS</li>
+<li>DHT Random Walk</li>
+<li>Railing</li>
+</ul>
+<p data-line="180"><a href="https://github.com/libp2p/specs/blob/master/4-architecture.md#44-discovery">specs/4-architecture.md at master · libp2p/specs · GitHub</a></p>
+<h4 data-line="183" id="Distributed-Record-Store-IPRS">Distributed Record Store (IPRS)</h4>
+<p data-line="185"><a href="https://github.com/ipfs/go-iprs">go-iprs</a> と <a href="https://github.com/libp2p/js-iprs-record">js-iprs-record</a> のリポジトリがあるが、両方とも他のプロジェクトでは使われていない。</p>
+<p data-line="187">仕様について書かれたドキュメントが一応あるが理解できず。<br />
+<a href="https://github.com/ipfs/specs/tree/master/iprs">specs/iprs at master · ipfs/specs · GitHub</a></p>
+<h2 data-line="191" id="%E5%AE%9F%E8%A3%85%E7%8A%B6%E6%B3%81">実装状況</h2>
+<p data-line="193">IPFS には大きく2つ JavaScript の実装 js-ipfs と Golang の実装 go-ipfs があります。</p>
+<p data-line="195">go-ipfs は<a href="https://github.com/ipfs/go-ipfs/pull/4960">Modularity を高めるためのリファクタリング</a>をしつつ、<a href="https://github.com/ipfs/go-ipfs/pulls?q=is%3Apr+is%3Aopen+label%3Acore-api">Core API の開発</a>を進めています。<br />
+Core API を用いると Golang で IPFS 組込みのアプリケーションを作成することができます。そのため OpenBazaar の様に ユーザーは IPFS のインストールをすることなく、分散アプリケーションを利用することができます。</p>
+<p data-line="198">js-ipfs を用いると、ブラウザ拡張を必要とせず IPFS のフルノードの作成ができる様になりました。しかし、CPU使用率が高いので<a href="https://github.com/ipfs-shipyard/ipfs-companion/issues/450#issuecomment-381166016">CPU 利用率の改善</a>を行っています。</p>
+<p data-line="200">また js-ipfs では <a href="https://github.com/ipfs/js-ipfs/issues/209">IPNS がサポートされていません</a>が、今年の Q2 で<a href="https://github.com/ipfs/js-ipfs/pull/1281#issuecomment-379324287">実装される予定</a>で、もし実現すればブラウザでの IPFS 利用が加速する可能性があります。</p>
+<p data-line="202">go-ipfs, js-ipfs それぞれの実装ステータス一覧はここで確認できます。<br />
+<a href="https://github.com/ipfs/ipfs/blob/master/IMPLEMENTATION_STATUS.md">ipfs/IMPLEMENTATION_STATUS.md at master · ipfs/ipfs · GitHub</a></p>
+<p data-line="206">iPhone, Android 上で IPFS をフルノードで動かすこともできるようになってきたようです。<br />
+Android に関しては <a href="https://github.com/ligi/IPFSDroid">IPFSDroid</a> があり、OpenBazaar が iOS で動作していると<a href="https://medium.com/@brianhoffman/building-mobile-apps-using-openbazaar-server-926ab88f23f9">同社の CEO が記事にしています</a>。</p>
+<p data-line="209">もしスマートフォンアプリ上で IPFS を動かしたい場合、はこちらの issue を参考にしてオプションの設定をすると良いかもしれません。<br />
+<a href="https://github.com/ipfs/go-ipfs/issues/4137">Low Power Mode · Issue #4137 · ipfs/go-ipfs · GitHub</a><br />
+<a href="https://github.com/ipfs/go-ipfs/pull/4154">Add low power init profile by magik6k · Pull Request #4154 · ipfs/go-ipfs · GitHub</a></p>
+<p data-line="213">また、IPFS は HTTP ベースの API を提供しており、クライアントの実装はメジャーな言語ほぼ全てで対応しています。</p>
+<h2 data-line="216" id="IPFS-%E3%82%92%E7%94%A8%E3%81%84%E3%81%9F%E3%82%A2%E3%83%97%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3">IPFS を用いたアプリケーション</h2>
+<ul>
+<li><a href="https://akasha.world/">AKASHA PROJECT</a></li>
+<li><a href="https://www.openbazaar.org/">OpenBazaar: Online Marketplace | Peer-to-Peer Ecommerce</a></li>
+<li><a href="https://arbo.re/">Arbore - P2P social file sharing</a></li>
+<li><a href="https://github.com/orbitdb/orbit-db">GitHub - orbitdb/orbit-db: Peer-to-Peer Database for the Decentralized Web</a></li>
+<li><a href="https://github.com/sahib/brig">GitHub - sahib/brig: File synchronization on top of ipfs with git like interface and FUSE filesystem</a></li>
+</ul>
+<p data-line="224">IPFS の issue にまとめられているので、そちらのリンクから最新情報を辿ることができます。<br />
+<a href="https://github.com/ipfs/ipfs/issues/230">Outline the Various Applications of IPFS, with Use Cases and Dependencies · Issue #230 · ipfs/ipfs · GitHub</a></p>
+<h2 data-line="228" id="%E3%83%AA%E3%83%95%E3%82%A1%E3%83%AC%E3%83%B3%E3%82%B9">リファレンス</h2>
+<p data-line="230">以下のリンク先の情報を参考にして作成しました。</p>
+<ul>
+<li><a href="https://github.com/ipfs/">IPFS · GitHub</a></li>
+<li><a href="https://github.com/ipld/">IPLD · GitHub</a></li>
+<li><a href="https://github.com/libp2p">libp2p · GitHub</a></li>
+<li><a href="https://github.com/multiformats">Multiformats · GitHub</a></li>
+<li><a href="https://github.com/ipfs-shipyard">IPFS Shipyard · GitHub</a></li>
+<li><a href="https://github.com/ipfs/reading-list">GitHub - ipfs/reading-list: Papers to read to understand IPFS</a></li>
+<li><a href="https://decentralized.blog/understanding-the-ipfs-white-paper-part-2.html">Understanding the IPFS White Paper part 2</a></li>
+</ul>
+
+  </body>
+</html>
