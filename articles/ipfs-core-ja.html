@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creating apps using IPFS Core API (Japanese)</title>
+  </head>
+  <body>
+
+<h1 data-line="0" id="IPFS-Core-API-%E3%81%A7-IPFS-%E7%B5%84%E3%81%BF%E8%BE%BC%E3%81%BF%E3%82%A2%E3%83%97%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E4%BD%9C%E6%88%90">IPFS Core API で IPFS 組み込みアプリケーションを作成</h1>
+<ul>
+<li>IPFS Core API とは</li>
+<li>注意する点</li>
+<li>リファレンス</li>
+</ul>
+<h2 data-line="7" id="IPFS-Core-API-%E3%81%A8%E3%81%AF">IPFS Core API とは</h2>
+<p data-line="9">IPFS Core API とは <a href="https://ipfs.io/blog/34-go-ipfs-0.4.14#ipfs-core-api">IPFS 公式ブログ</a>でアナウンスされていました、IPFS を組み込んだアプリケーションを作成する際に使われるインターフェースになります。</p>
+<p data-line="11">まだ全ての実装が完了している訳ではありませんが、<code>ipfs</code> コマンドで実装されていた大体の機能が PR 上に展開されているので、fetch して利用することは可能です。</p>
+<p data-line="13">それまでの IPFS を組み込んだアプリケーションでは go-ipfs のコマンド周りの Golang コードを import する形で利用していました。<br />
+しかし、公式側で想定していた利用ではなかったため、推奨されていた使い方ではありませんでした。</p>
+<p data-line="16">(例: OpenBazaar の場合)<br />
+<a href="https://github.com/OpenBazaar/openbazaar-go/blob/master/ipfs/add.go#L5">openbazaar-go/add.go at master · OpenBazaar/openbazaar-go · GitHub</a></p>
+<p data-line="20">試しに API サーバーに IPFS を組み込んだアプリケーションを作りました。<br />
+<a href="https://github.com/camelmasa/ipfs-coreapi-sample-app">GitHub - camelmasa/ipfs-coreapi-sample-app: IPFS CoreAPI Sample app</a></p>
+<p data-line="23">以下のコードで IPFS CoreAPI を実行しています。<br />
+<a href="https://github.com/camelmasa/ipfs-coreapi-sample-app/blob/master/ipfs/command.go">ipfs-coreapi-sample-app/command.go at master · camelmasa/ipfs-coreapi-sample-app · GitHub</a></p>
+<h2 data-line="27" id="%E6%B3%A8%E6%84%8F%E3%81%99%E3%82%8B%E7%82%B9">注意する点</h2>
+<p data-line="29">組み込み IPFS アプリケーションを作成する際に注意が必要なのはファイルディスクリプタの設定です。<br />
+標準の IPFS を起動する際に &quot;Successfully raised file descriptor limit to xxxx&quot; と表示されますが、これは内部でファイルディスクリプタの値が変更されたことを表しています。</p>
+<p data-line="32">なので、組み込みをする場合は同じ様にコード内で処理する必要がありますが、既に IPFS でコードが用意されてるので、それをコールするだけです。</p>
+<pre class="code CodeMirror"><span class="filename"></span><code class="">import &quot;github.com/ipfs/go-ipfs/cmd/ipfs/util&quot;
+
+main() {
+  util.ManageFdLimit()
+}
+</code></pre>
+<h2 data-line="43" id="%E3%83%AA%E3%83%95%E3%82%A1%E3%83%AC%E3%83%B3%E3%82%B9">リファレンス</h2>
+<ul>
+<li><a href="https://github.com/ipfs/go-ipfs/labels/core-api">Core API PRs</a></li>
+<li><a href="https://github.com/ipfs/go-ipfs/issues/3792">Too many open files on add with daemon · Issue #3792 · ipfs/go-ipfs · GitHub</a></li>
+</ul>
+
+  </body>
+</html>
